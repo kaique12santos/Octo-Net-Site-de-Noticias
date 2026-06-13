@@ -1,4 +1,16 @@
-__pycache__/
-*.py[cod]
-.env
+# Ambientes Virtuais
 .venv/
+venv/
+env/
+
+# Cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Variáveis de Ambiente (NUNCA subir a senha do banco!)
+.env
+
+# Testes
+.pytest_cache/
