@@ -111,7 +111,21 @@ npm run dev
 O terminal mostrará a URL local (geralmente `http://localhost:5173`).
 
 ---
+## 🔐 Variáveis de Ambiente backend
 
+Para rodar localmente, crie um arquivo `.env` na raiz da pasta `backend` copiando a estrutura do arquivo `.env.example`.
+
+**Variáveis necessárias:**
+* `DATABASE_URL`: String de conexão com o banco de dados PostgreSQL (Supabase). O formato padrão é `postgresql://postgres:[SENHA]@[HOST]:5432/postgres`.
+* `APP_NAME`: (Opcional) Nome da aplicação.
+* `DEBUG`: (Opcional) Ativa o modo de depuração. Use `True` para desenvolvimento e `False` em produção.
+---
+## 🔐 Variáveis de Ambiente frontend
+
+Para rodar localmente, crie um arquivo `.env` na raiz da pasta `frontend` copiando a estrutura do arquivo `.env.example`.
+
+**Variáveis necessárias:**
+* `VITE_API_URL`: URL base para as requisições à API do backend. Para desenvolvimento local, o padrão é `http://localhost:8000`.
 
 ## 🛠️ Tecnologias Utilizadas
 
