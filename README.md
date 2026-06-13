@@ -12,6 +12,27 @@ Antes de começar, certifique-se de ter as seguintes ferramentas instaladas na s
 * [Python](https://www.python.org/downloads/) (Recomendado versão 3.10 ou 3.11. **Atenção:** No Windows, não esqueça de marcar a caixa "Add Python to PATH" durante a instalação).
 
 ---
+## 📝 Padrão de Commits (Conventional Commits)
+
+Este projeto utiliza o padrão [Conventional Commits](https://www.conventionalcommits.org/) para manter o histórico de alterações rastreável e semântico. Todos os commits devem seguir a estrutura abaixo:
+
+`<tipo>: <descrição curta no imperativo>`
+
+### Tipos Permitidos:
+* **`feat`**: Uma nova funcionalidade.
+  * *Ex: `feat: adiciona model e controller de usuarios`*
+* **`fix`**: Correção de um bug.
+  * *Ex: `fix: corrige foreign key da tabela categories`*
+* **`chore`**: Tarefas de manutenção, atualização de dependências ou configurações que não alteram código de produção.
+  * *Ex: `chore: atualiza requirements.txt com psycopg2`*
+* **`docs`**: Alterações apenas na documentação.
+  * *Ex: `docs: adiciona tutorial de setup do ambiente virtual`*
+* **`refactor`**: Uma alteração de código que não corrige um bug nem adiciona uma feature (ex: melhoria de performance ou organização MSC).
+  * *Ex: `refactor: move logica de banco para services`*
+* **`test`**: Adição ou correção de testes automatizados.
+  * *Ex: `test: adiciona teste unitario para o endpoint health check`*
+* **`style`**: Mudanças de formatação (espaços, aspas, linting) que não afetam a lógica.
+---
 
 ## 🚀 Como rodar o projeto localmente
 
@@ -90,6 +111,7 @@ npm run dev
 O terminal mostrará a URL local (geralmente `http://localhost:5173`).
 
 ---
+
 
 ## 🛠️ Tecnologias Utilizadas
 
