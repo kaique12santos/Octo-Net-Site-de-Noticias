@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from app.controllers.health_controller import router as health_router
-from app.controllers.user_controller import router as user_router
-from app.controllers.news_controller import router as news_router
-from app.database.connection import engine, Base
+from app.controllers.profile_controller import router as profile_router
 
 
 app = FastAPI(
@@ -12,9 +10,7 @@ app = FastAPI(
 )
 
 app.include_router(health_router)
-app.include_router(user_router)
-app.include_router(news_router)
-
+app.include_router(profile_router)
 
 @app.get("/")
 async def root():

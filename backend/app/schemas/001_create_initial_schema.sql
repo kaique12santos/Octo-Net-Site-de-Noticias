@@ -14,6 +14,11 @@ CREATE TABLE profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     nome VARCHAR(255) NOT NULL,
     avatar_url TEXT,
+    email VARCHAR(100) UNIQUE,
+    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('visitor', 'user', 'reader', 'editor', 'admin', 'super_admin')),
+    bio TEXT,
+    is_active BOOLEAN DEFAULT true,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
