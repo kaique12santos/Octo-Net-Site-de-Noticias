@@ -167,3 +167,40 @@ INSERT INTO categories (nome, slug) VALUES
     ('Inteligência Artificial', 'inteligencia-artificial'),
     ('Programação', 'programacao')
 ON CONFLICT (slug) DO NOTHING;
+
+-- ==================================================================================================
+-- atualizações dia 27/06/2026
+ALTER TABLE profiles
+ADD COLUMN email VARCHAR(100) UNIQUE;
+
+-- 2. Adicionar a Role com o valor padrão "user" (conforme sua task) 
+-- e a restrição de segurança (CHECK) baseada nos perfis do sistema
+ALTER TABLE profiles
+ADD COLUMN role VARCHAR(20) DEFAULT 'user' 
+CHECK (role IN ('visitor', 'user', 'reader', 'editor', 'admin', 'super_admin'));
+
+-- 3. Adicionar os dados complementares previstos no escopo
+ALTER TABLE profiles
+ADD COLUMN bio TEXT,
+ADD COLUMN is_active BOOLEAN DEFAULT true,
+ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Cria a função que será executada automaticamente
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, nome, email, role)
+  VALUES (
+    new.id, 
+    COALESCE(new.raw_user_meta_data->>'nome', 'Usuário Novo'), -- Pega o nome do metadata se houver
+    new.email, 
+    'user'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Cria o gatilho (Trigger) que escuta a tabela nativa de autenticação
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
