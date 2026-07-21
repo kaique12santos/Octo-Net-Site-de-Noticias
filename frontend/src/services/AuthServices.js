@@ -40,5 +40,29 @@ export const AuthServices = {
   // Busca o usuário logado atualmente
   async getCurrentUser() {
     return await supabase.auth.getUser();
-  }
+  },
+
+  // Solicita o link de redefinição de senha (envia e-mail)
+  async requestPasswordReset(email) {
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/resetsenha`, 
+      });
+      return { data, error };
+    } catch (error) {
+      return { error };
+    }
+  },
+
+  // Atualiza a senha do usuário logado
+  async updateUserPassword(newPassword) {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      return { data, error };
+    } catch (error) {
+      return { error };
+    }
+  },
 };
