@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.schemas.profile_schema import ProfileCreate, ProfileResponse
@@ -8,6 +10,8 @@ from app.database.connection import get_db
 from app.core.jwt_auth import get_current_user
 from app.core.auth_user import AuthUser
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/profile", tags=["Profile"])
 
 @router.post("/register", response_model=ProfileResponse, status_code=status.HTTP_201_CREATED)
@@ -17,8 +21,9 @@ def register_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
     """
     try:
         return profile_service.sync_profile(db=db, profile_data=profile)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar perfil: {str(e)}")
+    except Exception:
+        logger.exception("Erro ao processar perfil")
+        raise HTTPException(status_code=400, detail="Erro ao processar perfil.")
 
 # NOVA ROTA PROTEGIDA: A prova de fogo do JWT
 @router.get("/me")
