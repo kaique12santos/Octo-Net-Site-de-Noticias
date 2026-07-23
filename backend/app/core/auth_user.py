@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class UserRole(str, Enum):
-    """Papéis aceitos pela aplicação. Manter em sync com profiles_role_check (migration 003).
+    """Papéis aceitos pela aplicação. Manter em sync com profiles_role_check (migration 004).
 
     Hierarquia (cada um herda permissões dos mais baixos):
         super_admin > admin > editor > user
