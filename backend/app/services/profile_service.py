@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from app.models.profile_model import Profile
+from app.models.user import User
 from app.schemas.profile_schema import ProfileCreate
 
 def sync_profile(db: Session, profile_data: ProfileCreate):
-    db_profile = db.query(Profile).filter(Profile.id == profile_data.id).first()
+    db_profile = db.query(User).filter(User.id == profile_data.id).first()
     
     if db_profile:
         # Se o perfil existe, mas o nome ainda é o padrão da trigger, ATUALIZA!
@@ -14,7 +14,7 @@ def sync_profile(db: Session, profile_data: ProfileCreate):
         return db_profile
     
     # 2. Se não existe, cria um novo
-    new_profile = Profile(
+    new_profile = User(
         id=profile_data.id,
         nome=profile_data.nome,
         email=profile_data.email,
