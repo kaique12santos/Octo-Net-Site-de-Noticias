@@ -20,3 +20,5 @@ class UserRole(str, Enum):
 class AuthUser(BaseModel):
     user_id: UUID
     role: UserRole = UserRole.USER
+    nome: str
+    avatar_url: Optional[str] = None

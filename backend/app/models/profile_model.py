@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Boolean, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
-from app.models.base import Base # Assumindo que seu declarative_base() está aqui
+from app.models.base import Base
 
 class Profile(Base):
     __tablename__ = 'profiles'
