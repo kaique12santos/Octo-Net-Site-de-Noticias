@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PasswordRequirement from "@/components/Checklist";
-import { AuthServices } from "@/services/AuthServices"; // Certifique-se de ter os métodos de reset aqui
+import { AuthServices } from "@/services/AuthServices";
 
 export default function ResetPassword() {
-  // Controle de qual tela mostrar: 'request' (pedir link) ou 'update' (digitar nova senha)
   const [step, setStep] = useState("request");
 
   // Estados dos formulários
@@ -28,7 +27,6 @@ export default function ResetPassword() {
 
   // Verifica se o usuário chegou aqui através do link do e-mail
   useEffect(() => {
-    // O Supabase geralmente envia um hash (#access_token=...) ou query param (?code=...)
     const hash = window.location.hash;
     const query = window.location.search;
 
@@ -79,28 +77,24 @@ export default function ResetPassword() {
     const { error } = await AuthServices.updateUserPassword(password);
 
     if (error) {
-      console.log("🔥 Erro do Supabase:", error); // Bom manter para debug futuro
+      console.log("🔥 Erro do Supabase:", error); 
 
-      // Verifica pelo status HTTP 422 (Unprocessable Entity)
       if (error.status === 422) {
-        // Como o 422 pode ser senha fraca ou igual à anterior, podemos ser específicos
         if (error.message.includes("different from the old password") || error.message.includes("same password")) {
           setError("A nova senha não pode ser igual à senha atual.");
         } else {
           setError("Senha inválida. Certifique-se de que atende aos requisitos de segurança.");
         }
       } 
-      // Erro 401 ou 403 geralmente significa que a sessão expirou
       else if (error.status === 401 || error.status === 403) {
         setError("O link de redefinição expirou. Por favor, solicite um novo link.");
       } 
-      // Fallback para qualquer outro erro genérico (ex: sem internet)
       else {
         setError("Ocorreu um erro ao tentar redefinir a senha. Tente novamente mais tarde.");
       }
       
       setLoading(false);
-      return; // Interrompe a execução para não cair na mensagem de sucesso
+      return; 
     } else {
       setMessage("Senha alterada com sucesso! Redirecionando...");
       setTimeout(() => {

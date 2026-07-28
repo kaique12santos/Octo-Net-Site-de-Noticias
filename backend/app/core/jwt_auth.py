@@ -63,13 +63,20 @@ def get_current_user(
 
     # Busca no banco de dados local da aplicação
     profile = db.query(Profile).filter(Profile.id == str(user_id)).first()
+
+    if profile:
+        print(f"DEBUG: Profile encontrado! Nome: {profile.nome}, Role: {profile.role}")
+    else:
+        print(f"DEBUG: Profile não encontrado para o ID: {user_id}")
     
     if profile is None:
         raise AuthError(code="USER_NOT_FOUND", message="Usuário autenticado, mas perfil não encontrado.", status_code=401)
 
     try:
         role = UserRole(profile.role)
+        nome = profile.nome if profile.nome else "Usuário"
+        avatar_url = profile.avatar_url if profile.avatar_url else None
     except ValueError:
         role = UserRole.USER
 
-    return AuthUser(user_id=UUID(str(user_id)), role=role)
+    return AuthUser(user_id=UUID(str(user_id)), role=role, nome=nome, avatar_url=avatar_url)
