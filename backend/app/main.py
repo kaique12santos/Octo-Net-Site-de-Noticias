@@ -1,9 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware # Import do CORS
 from app.controllers.health_controller import router as health_router
-from app.controllers.user_controller import router as user_router
-from app.controllers.news_controller import router as news_router
-from app.database.connection import engine, Base
-
+from app.controllers.profile_controller import router as profile_router
+from app.core.exceptions import AuthError, auth_error_handler # Import do Handler de erro
+from app.controllers.auth_controller import router as auth_router
 
 app = FastAPI(
     title="Portal MSC API",
@@ -11,10 +11,21 @@ app = FastAPI(
     version="0.1.0"
 )
 
-app.include_router(health_router)
-app.include_router(user_router)
-app.include_router(news_router)
+# 1. Configuração do CORS (Obrigatório para o React/Vite conectar)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # URL do seu Frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# 2. Inclusão das Rotas
+app.include_router(health_router)
+app.include_router(profile_router)
+app.include_router(auth_router)
+# 3. Registro do Handler de Erros de Autenticação (Para o JWT retornar 401 em vez de 500)
+app.add_exception_handler(AuthError, auth_error_handler)
 
 @app.get("/")
 async def root():
