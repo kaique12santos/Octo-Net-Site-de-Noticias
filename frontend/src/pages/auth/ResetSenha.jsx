@@ -4,9 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PasswordRequirement from "@/components/Checklist";
 import { AuthServices } from "@/services/AuthServices";
+import { useSearchParams } from "react-router-dom";
 
 export default function ResetPassword() {
   const [step, setStep] = useState("request");
+
+  // Busca o token da URL (se houver)
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
 
   // Estados dos formulários
   const [email, setEmail] = useState("");
@@ -27,13 +32,10 @@ export default function ResetPassword() {
 
   // Verifica se o usuário chegou aqui através do link do e-mail
   useEffect(() => {
-    const hash = window.location.hash;
-    const query = window.location.search;
-
-    if (hash.includes("type=recovery") || query.includes("code=")) {
+    if (token) {
       setStep("update");
     }
-  }, []);
+  }, [token]);
 
   // Função 1: Solicitar o link de recuperação
   const handleRequestLink = async (e) => {
@@ -62,6 +64,14 @@ export default function ResetPassword() {
     setError(null);
     setMessage(null);
 
+    // 1. Validação extra: garante que o link tem um token válido
+    if (!token) {
+      setError("Token de recuperação ausente. Por favor, solicite um novo link.");
+      setLoading(false);
+      return;
+    }
+
+    // 2. Validações da força da senha (mantidas do seu código)
     if (!isPasswordValid) {
       setError("A senha deve conter no mínimo 8 caracteres, uma letra maiúscula e um número.");
       setLoading(false);
@@ -74,33 +84,21 @@ export default function ResetPassword() {
       return;
     }
 
-    const { error } = await AuthServices.updateUserPassword(password);
+    // 3. Consome a NOVA função do Service passando o TOKEN e a SENHA
+    const { error } = await AuthServices.resetPasswordWithToken(token, password);
 
     if (error) {
-      console.log("🔥 Erro do Supabase:", error); 
-
-      if (error.status === 422) {
-        if (error.message.includes("different from the old password") || error.message.includes("same password")) {
-          setError("A nova senha não pode ser igual à senha atual.");
-        } else {
-          setError("Senha inválida. Certifique-se de que atende aos requisitos de segurança.");
-        }
-      } 
-      else if (error.status === 401 || error.status === 403) {
-        setError("O link de redefinição expirou. Por favor, solicite um novo link.");
-      } 
-      else {
-        setError("Ocorreu um erro ao tentar redefinir a senha. Tente novamente mais tarde.");
-      }
-      
+      // O erro já vem mastigado do backend (ex: "Código ou token inválido, expirado ou já utilizado.")
+      setError(error);
       setLoading(false);
       return; 
-    } else {
-      setMessage("Senha alterada com sucesso! Redirecionando...");
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
-    }
+    } 
+    
+    // Sucesso!
+    setMessage("Senha alterada com sucesso! Redirecionando...");
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 2000);
 
     setLoading(false);
   };

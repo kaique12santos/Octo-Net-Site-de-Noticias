@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import React from "react";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { 
   LayoutGrid, 
   PenLine, 
@@ -8,9 +8,10 @@ import {
   ShieldAlert,
   Bell, 
   Settings, 
-  LogOut 
+  LogOut,
+  AlertTriangle
 } from "lucide-react";
-import { AuthServices } from "@/services/AuthServices";
+import { useAuth } from "@/store/AuthContext.jsx";
 
 // Configuração centralizada do menu lateral
 const SIDEBAR_MENU = [
@@ -36,58 +37,72 @@ const SIDEBAR_MENU = [
     title: "Gerenciar Usuários",
     path: "/usuarios",
     icon: Users,
-    // Apenas cargos altos veem esta opção
     allowedRoles: ["admin", "super_admin"] 
   },
   {
     title: "Logs do Sistema",
     path: "/auditoria",
     icon: ShieldAlert,
-    // Apenas o super admin vê esta opção
     allowedRoles: ["super_admin"] 
   }
 ];
 
 export default function AdminLayout() {
+  // 1. Otimização: Consome o 'user' e o 'logout' diretamente do contexto
+  const { user: userProfile, isProfileIncomplete, loading, logout } = useAuth();
+  
   const navigate = useNavigate();
-  const [userProfile, setUserProfile] = useState(null);
-
-  useEffect(() => {
-    // Busca os dados do usuário para preencher o Header e filtrar o menu
-    const fetchProfile = async () => {
-      const response = await AuthServices.getCurrentUserProfile();
-      if (response) {
-        setUserProfile(response);
-      }
-    };
-    fetchProfile();
-  }, []);
+  const location = useLocation(); // <-- Para saber a rota atual
 
   const handleLogout = async () => {
-    await AuthServices.signOut(); // Seu método de deslogar
+    await logout(); // Usa a função do contexto que já limpa os estados
     navigate("/login");
   };
 
-  // Se ainda não carregou o perfil, mostra tela vazia ou skeleton
-  if (!userProfile) return <div className="min-h-screen bg-[#0E121A]"></div>;
+  // Se ainda estiver carregando o perfil do contexto, mostra tela vazia
+  if (loading || !userProfile) return <div className="min-h-screen bg-[#0E121A]"></div>;
 
   // Filtra o menu com base na role do usuário atual
   const filteredMenu = SIDEBAR_MENU.filter(item => 
     item.allowedRoles.includes(userProfile.role)
   );
 
+  // Verifica se o usuário precisa preencher os dados, mas esconde o alerta se ele JÁ ESTIVER na página de perfil
+  const showBlockingModal = isProfileIncomplete && location.pathname !== "/perfil";
+
   return (
-    <div className="min-h-screen flex bg-[#0B0E14] text-slate-200 font-sans">
+    <div className="min-h-screen flex bg-[#0B0E14] text-slate-200 font-sans relative">
       
+      {/* ==========================================
+          MODAL DE BLOQUEIO GLOBAL
+      ========================================== */}
+      {showBlockingModal && (
+        <div className="absolute inset-0 z-50 bg-[#0B0E14]/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#121620] border border-slate-700 rounded-xl p-8 max-w-md w-full text-center shadow-2xl flex flex-col items-center">
+            <div className="h-16 w-16 bg-yellow-500/10 rounded-full flex items-center justify-center mb-6">
+              <AlertTriangle className="text-yellow-500" size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-100 mb-3">Ação Necessária</h2>
+            <p className="text-slate-400 mb-8 leading-relaxed">
+              Para garantir a segurança e o padrão corporativo, você precisa completar os dados do seu perfil (CPF e Endereço) antes de acessar o painel.
+            </p>
+            <button
+              onClick={() => navigate("/perfil")}
+              className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold py-3 px-4 rounded-lg transition-colors"
+            >
+              Completar Meu Perfil Agora
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ==========================================
           SIDEBAR (Barra Lateral Esquerda)
       ========================================== */}
-      <aside className="w-64 bg-[#121620] border-r border-slate-800 flex flex-col justify-between">
-        
+      <aside className="w-64 bg-[#121620] border-r border-slate-800 flex flex-col justify-between z-10">
         <div>
           {/* Logo */}
           <div className="h-20 flex items-center px-6 border-b border-slate-800">
-             {/* Substitua pela sua imagem real, mantive o texto estilizado como na imagem */}
              <span className="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
                OCTO-NEWS
              </span>
@@ -117,7 +132,7 @@ export default function AdminLayout() {
           </nav>
         </div>
 
-        {/* Botão de Sair (Fixo no rodapé da Sidebar) */}
+        {/* Botão de Sair */}
         <div className="p-4 border-t border-slate-800">
           <button 
             onClick={handleLogout}
@@ -135,9 +150,7 @@ export default function AdminLayout() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         
         {/* Header Corporativo */}
-        <header className="h-20 flex items-center justify-end px-8 bg-[#121620] border-b border-slate-800 gap-6">
-          
-          {/* Ícones de Ação */}
+        <header className="h-20 flex items-center justify-end px-8 bg-[#121620] border-b border-slate-800 gap-6 z-10">
           <div className="flex items-center gap-4 text-slate-400">
             <button className="hover:text-cyan-400 transition-colors">
               <Bell size={20} />
@@ -161,11 +174,10 @@ export default function AdminLayout() {
               className="h-10 w-10 rounded-full border border-slate-700 object-cover"
             />
           </div>
-
         </header>
 
-        {/* Conteúdo Dinâmico (onde entra o formulário de criar notícia) */}
-        <main className="flex-grow p-8 overflow-auto bg-[#0B0E14]">
+        {/* Conteúdo Dinâmico */}
+        <main className="flex-grow p-8 overflow-auto bg-[#0B0E14] relative">
           <div className="max-w-5xl mx-auto">
              <Outlet />
           </div>

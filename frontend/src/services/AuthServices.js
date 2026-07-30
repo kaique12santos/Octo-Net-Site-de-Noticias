@@ -43,27 +43,36 @@ export const AuthServices = {
     return await supabase.auth.getUser();
   },
 
-  // Solicita o link de redefinição de senha (envia e-mail)
+  // Solicita a redefinição de senha enviando um e-mail com o token
   async requestPasswordReset(email) {
     try {
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/resetsenha`, 
-      });
-      return { data, error };
+      // Consome a rota do FastAPI que criamos (enviando o JSON esperado)
+      const response = await api.post('/auth/forgot-password', { email });
+      return { data: response.data, error: null };
     } catch (error) {
-      return { error };
+      console.error("Erro ao solicitar reset:", error);
+      return { 
+        data: null, 
+        error: error.response?.data?.message || "Erro ao solicitar a redefinição de senha." 
+      };
     }
   },
 
-  // Atualiza a senha do usuário logado
-  async updateUserPassword(newPassword) {
+  // Redefine a senha usando o token recebido por e-mail
+  async resetPasswordWithToken(token, newPassword) {
     try {
-      const { data, error } = await supabase.auth.updateUser({
-        password: newPassword,
+      // Consome a rota do FastAPI enviando o token e a "nova_senha"
+      const response = await api.post('/auth/reset-password', {
+        token: token,
+        nova_senha: newPassword
       });
-      return { data, error };
+      return { data: response.data, error: null };
     } catch (error) {
-      return { error };
+      console.error("Erro ao redefinir senha:", error);
+      return { 
+        data: null, 
+        error: error.response?.data?.message || "Código inválido ou expirado." 
+      };
     }
   },
   // Busca o perfil completo do usuário logado, incluindo dados do backend
