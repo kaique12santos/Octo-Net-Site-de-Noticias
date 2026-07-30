@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas.profile_schema import ProfileCreate, ProfileResponse
+from app.schemas.profile_schema import ProfileCreate, ProfileResponse, ProfileUpdate
 from app.services import profile_service
 from app.database.connection import get_db
 
@@ -46,3 +46,48 @@ def get_my_profile(
             status_code=404,
         )
     return profile
+
+@router.patch("/me", response_model=ProfileResponse)
+def update_my_profile(
+    payload: ProfileUpdate,
+    current_user: AuthUser = Depends(
+        require_role(
+            UserRole.USER,
+            UserRole.EDITOR,
+            UserRole.ADMIN,
+            UserRole.SUPER_ADMIN,
+        )
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Atualiza os dados do perfil do usuário autenticado.
+    Apenas os campos enviados no corpo da requisição serão alterados.
+    """
+    # 1. Busca o perfil atual usando o service que você já tem importado
+    profile = profile_service.get_profile_by_id(db=db, user_id=current_user.user_id)
+    
+    if profile is None:
+        raise AuthError(
+            code="USER_NOT_FOUND",
+            message="Usuário autenticado, mas perfil não encontrado no banco.",
+            status_code=404,
+        )
+
+    try:
+        # 2. Extrai APENAS os dados que o frontend enviou (ignora os nulos/não enviados)
+        update_data = payload.model_dump(exclude_unset=True)
+        
+        # 3. Atualiza dinamicamente as colunas no objeto do banco
+        for key, value in update_data.items():
+            setattr(profile, key, value)
+
+        # 4. Salva as alterações
+        db.commit()
+        db.refresh(profile)
+        
+        return profile
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Erro ao atualizar perfil: {str(e)}")

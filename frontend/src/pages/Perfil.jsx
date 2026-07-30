@@ -22,14 +22,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/store/AuthContext.jsx";
 
 export default function Perfil() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [profile, setProfile] = useState(null);
   
   const [formData, setFormData] = useState({
     nome: "",
-    biografia: "",
+    bio: "",
     avatar_url: "",
     cpf: "",
     cep: "",
@@ -63,7 +65,7 @@ export default function Perfil() {
         setFormData((prev) => ({
           ...prev,
           nome: data.nome || "",
-          biografia: data.biografia || "",
+          bio: data.bio || "",
           avatar_url: data.avatar_url || "",
           cpf: data.cpf || "",
           cep: data.cep || "",
@@ -190,6 +192,8 @@ export default function Perfil() {
     } else {
       setSuccessMessage("Perfil atualizado com sucesso!");
       setProfile((prev) => ({ ...prev, ...payload }));
+
+      await refreshUser();
     }
   };
 
@@ -302,10 +306,10 @@ export default function Perfil() {
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <Label htmlFor="biografia" className="text-slate-400">Biografia</Label>
-                  <span className="text-xs text-slate-500">{formData.biografia.length} / 250</span>
+                  <Label htmlFor="bio" className="text-slate-400">Biografia</Label>
+                  <span className="text-xs text-slate-500">{formData.bio.length} / 250</span>
                 </div>
-                <Textarea id="biografia" name="biografia" value={formData.biografia} onChange={handleInputChange} maxLength="250" className="bg-[#121620] border-slate-700 text-slate-200 focus-visible:ring-cyan-500 h-24 resize-none" placeholder="Escreva um pouco sobre você..."/>
+                <Textarea id="bio" name="bio" value={formData.bio} onChange={handleInputChange} maxLength="250" className="bg-[#121620] border-slate-700 text-slate-200 focus-visible:ring-cyan-500 h-24 resize-none" placeholder="Escreva um pouco sobre você..."/>
               </div>
             </div>
           </section>
