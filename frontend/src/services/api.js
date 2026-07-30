@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 // Cria a instância apontando para o seu FastAPI
 export const api = axios.create({
-  baseURL: 'http://localhost:8000', // Ajuste para a porta que seu Uvicorn roda
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
 });
 
 // Interceptador: Antes de qualquer requisição sair, ele injeta o token
