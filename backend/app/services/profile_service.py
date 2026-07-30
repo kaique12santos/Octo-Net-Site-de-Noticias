@@ -1,9 +1,15 @@
+from typing import Optional
+from uuid import UUID
 from sqlalchemy.orm import Session
 from app.models.profile_model import Profile
 from app.schemas.profile_schema import ProfileCreate
 
+def get_profile_by_id(db: Session, user_id: UUID | str) -> Optional[Profile]:
+    """Busca um perfil no banco pelo ID do usuário."""
+    return db.query(Profile).filter(Profile.id == user_id).first()
+
 def sync_profile(db: Session, profile_data: ProfileCreate):
-    db_profile = db.query(Profile).filter(Profile.id == profile_data.id).first()
+    db_profile = get_profile_by_id(db, profile_data.id)
     
     if db_profile:
         # Se o perfil existe, mas o nome ainda é o padrão da trigger, ATUALIZA!

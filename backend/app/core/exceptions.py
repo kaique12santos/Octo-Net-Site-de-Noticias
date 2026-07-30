@@ -16,12 +16,22 @@ class AuthError(Exception):
         super().__init__(message)
 
 
+_STATUS_TO_LABEL = {
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+    500: "Server Error",
+}
+
+
 async def auth_error_handler(request: Request, exc: AuthError) -> JSONResponse:
+    label = _STATUS_TO_LABEL.get(exc.status_code, "Error")
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "error": "Unauthorized" if exc.status_code == 401 else "Server Error",
+            "error": label,
             "code": exc.code,
             "message": exc.message,
         },
     )
+

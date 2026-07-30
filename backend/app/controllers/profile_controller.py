@@ -6,7 +6,9 @@ from app.database.connection import get_db
 
 # Importações vitais para a rota protegida
 from app.core.jwt_auth import get_current_user
-from app.core.auth_user import AuthUser
+from app.core.auth_user import AuthUser, UserRole
+from app.core.permissions import require_role
+from app.core.exceptions import AuthError
 
 router = APIRouter(prefix="/api/profile", tags=["Profile"])
 
@@ -20,18 +22,27 @@ def register_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao processar perfil: {str(e)}")
 
-# NOVA ROTA PROTEGIDA: A prova de fogo do JWT
-@router.get("/me")
-def get_my_profile(current_user: AuthUser = Depends(get_current_user)):
+@router.get("/me", response_model=ProfileResponse)
+def get_my_profile(
+    current_user: AuthUser = Depends(
+        require_role(
+            UserRole.USER,
+            UserRole.EDITOR,
+            UserRole.ADMIN,
+            UserRole.SUPER_ADMIN,
+        )
+    ),
+    db: Session = Depends(get_db),
+):
     """
-    Rota protegida! Só chega aqui se o token JWT for válido.
-    O middleware injeta os dados do usuário logado na variável current_user.
+    Retorna o perfil completo do usuário autenticado.
+    Acesso restrito a usuários autenticados com role válida.
     """
-    print(f"Perfil do usuário logado: {current_user}")
-    return {
-        "message": "Acesso autorizado com sucesso!!",
-        "user_id": str(current_user.user_id),
-        "role": current_user.role.value,
-        "nome": current_user.nome,
-        "avatar_url": current_user.avatar_url
-    }
+    profile = profile_service.get_profile_by_id(db=db, user_id=current_user.user_id)
+    if profile is None:
+        raise AuthError(
+            code="USER_NOT_FOUND",
+            message="Usuário autenticado, mas perfil não encontrado no banco.",
+            status_code=404,
+        )
+    return profile
