@@ -23,6 +23,7 @@ class AuthService:
         ).first()
         return row[0] if row else None
 
+    # Envia e-mail de redefinição de senha
     def forgot_password(self, email: str) -> None:
         profile_id = self._profile_id_by_email(email)
         if profile_id is None:
@@ -42,7 +43,7 @@ class AuthService:
             "O link vale por 30 minutos e só pode ser usado uma vez.\n"
             "Se não foi você quem pediu, ignore este e-mail.",
         )
-
+    # Resete de senha com token
     def reset_password(self, token: str, nova_senha: str) -> bool:
         registro = self.tokens.find_valid_link(token, PASSWORD_RESET)
         if registro is None:
