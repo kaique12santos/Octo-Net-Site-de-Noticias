@@ -7,7 +7,8 @@ from app.core.exceptions import AuthError, auth_error_handler # Import do Handle
 from app.controllers.auth_controller import router as auth_router
 
 
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
+frontend_urls = [url.strip() for url in os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")]
+
 app = FastAPI(
     title="Portal MSC API",
     description="API do portal de notícias com arquitetura MSC",
@@ -17,7 +18,7 @@ app = FastAPI(
 # 1. Configuração do CORS (Obrigatório para o React/Vite conectar)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url],
+    allow_origins=frontend_urls,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
